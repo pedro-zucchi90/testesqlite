@@ -1,27 +1,40 @@
-//manipular dados do banco de dados
+//Manipular dados do banco de dados
 
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:path/path.dart';
 import '../database/db.dart';
 import '../model/dogmodel.dart';
 
-//INSERT
-
-Future<int>insertDog(Map<String, dynamic> dog) async {
-  final db = await getDatabase();
-  return await db.insert('dogs', dog);
+//Insert
+Future<int>insertDog(DogModel dog) async {
+  Database db = await getDatabase();
+  
+  return await db.insert(
+    'dogs',
+    dog.toMap(),
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
 }
 
-//delete
-Future<int> deleteDog(int id) async {
+//findAll
+Future<List<Map>> findAll() async {
   final db = await getDatabase();
-  return await db.delete(
+  return db.query('dogs');
+}
+
+
+//remove
+
+Future<int> removeDog(int id) async {
+  final db = await getDatabase();
+  return db.delete(
     'dogs',
     where: 'id = ?',
     whereArgs: [id],
   );
 }
+
+
 
 
 

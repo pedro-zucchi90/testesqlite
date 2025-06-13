@@ -5,6 +5,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
 Future<Database> getDatabase() async {
+  // Inicializa o databaseFactory para sqflite_common_ffi
   sqfliteFfiInit();
 
   String caminhoDatabase = join(await getDatabasesPath(), 'dogs.db');

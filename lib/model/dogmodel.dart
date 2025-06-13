@@ -11,6 +11,13 @@ class DogModel {
     required this.Idade,
   });
 
+  factory DogModel.fromMap(Map map) {
+    return DogModel(
+      id: map['id'],
+      Nome: map['nome'],
+      Idade: map['idade'],
+    );
+  }
   
   Map<String, dynamic> toMap() {
     return {
