@@ -15,7 +15,7 @@ void main() {
   debugPrint('Buscando todos os dogs...');
   findAll().then((dados) {
     for (Map<dynamic, dynamic> item in dados) {
-      debugPrint('Item: $dados');
+      debugPrint('Item: $item');
     }
   });
 
