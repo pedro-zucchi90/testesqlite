@@ -24,7 +24,6 @@ Future<List<Map>> findAll() async {
 
 
 //remove
-
 Future<int> removeDog(int id) async {
   final db = await getDatabase();
   return db.delete(
