@@ -37,13 +37,16 @@ class _InicialShowState extends State<InicialShow> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.indigo, // Cor da barra superior
+        backgroundColor: Colors.indigo, 
         leading: Icon(Icons.pets, color: Colors.white, size: 40.0), 
         title: Text('Lista dos Dog', style: TextStyle(color: Colors.white)), 
       ),
       body: FutureBuilder(
+        initialData: [],
         future: findAll(), 
         builder: (context, snapshot) {
+          // Snapshot ==> Variável que vai guardar os retornos da função Future
+          // Snapshot ==> 
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
             case ConnectionState.active:
@@ -82,7 +85,7 @@ class _InicialShowState extends State<InicialShow> {
                               onPressed: () async {
                                 if (dog.id != null) {
                                   await removeDog(dog.id!);
-                                  setState(() {}); // Atualiza a lista
+                                  setState(() {}); 
                                 }
                               },
                             ),
@@ -174,7 +177,7 @@ class TelaCadastroShow extends StatelessWidget {
                   decoration: InputDecoration(
                     labelText: 'Idade do Dog',
                     border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.numbers),
+                    prefixIcon: Icon(Icons.calendar_today),
                   ),
                 ),
               ),
