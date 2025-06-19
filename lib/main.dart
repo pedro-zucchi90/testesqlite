@@ -199,16 +199,46 @@ class TelaCadastroShow extends StatelessWidget {
                   //-------------------------------SALVAR------------------------
                   ElevatedButton(
                     onPressed: () async {
-                      if (_controllernome.text != "" &&
-                          _controlleridade.text != "") {
-                        DogModel p = DogModel(
-                          Nome: _controllernome.text,
-                          Idade: int.parse(_controlleridade.text), 
+                      if (_controllernome.text == "" || _controlleridade.text == "") {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Campos obrigatórios'),
+                            content: Text('Por favor, preencha todos os campos.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text('OK'),
+                              ),
+                            ],
+                          ),
                         );
-
-                        await insertDog(p); 
-                        Navigator.pop(context, p); 
+                        return;
                       }
+                      int? idade = int.tryParse(_controlleridade.text);
+                      if (idade == null) {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Idade inválida'),
+                            content: Text('Por favor, digite um número inteiro para a idade.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                        return;
+                      }
+                      
+                      DogModel p = DogModel(
+                        Nome: _controllernome.text,
+                        Idade: idade,
+                      );
+                      await insertDog(p);
+                      Navigator.pop(context, p);
                     },
                     child: Text("Salvar"),
                   ),
