@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:testesqlite/dao/dogdao.dart';
+import 'package:testesqlite/dao/dogdao.dart' show insertDog, removeDog, findAll, buscarPorNome, buscarPorIdade;
 import 'package:testesqlite/model/dogmodel.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -33,26 +33,26 @@ class InicialShow extends StatefulWidget {
 }
 
 class _InicialShowState extends State<InicialShow> {
-  TextEditingController _searchController = TextEditingController();
-  TextEditingController _ageController = TextEditingController();
-  String _searchTerm = '';
-  int? _searchAge;
+  TextEditingController _nomeController = TextEditingController();
+  TextEditingController _idadeController = TextEditingController();
+  String _termoBusca = '';
+  int? _idadeBusca;
 
   Future<List<Map>> _getDogs() {
-    if (_searchTerm.isEmpty && (_searchAge == null || _searchAge.toString().isEmpty)) {
+    if (_termoBusca.isEmpty && (_idadeBusca == null || _idadeBusca.toString().isEmpty)) {
       return findAll();
-    } else if (_searchTerm.isNotEmpty && _searchAge != null && _searchAge.toString().isNotEmpty) {
+    } else if (_termoBusca.isNotEmpty && _idadeBusca != null && _idadeBusca.toString().isNotEmpty) {
       // Buscar por nome e idade
       return findAll().then((list) =>
         list.where((dog) =>
-          (dog['Nome'] as String).toLowerCase().contains(_searchTerm.toLowerCase()) &&
-          dog['Idade'] == _searchAge
+          (dog['nome'] as String).toLowerCase().contains(_termoBusca.toLowerCase()) &&
+          dog['idade'] == _idadeBusca
         ).toList()
       );
-    } else if (_searchTerm.isNotEmpty) {
-      return findByName(_searchTerm);
-    } else if (_searchAge != null && _searchAge.toString().isNotEmpty) {
-      return findByAge(_searchAge!);
+    } else if (_termoBusca.isNotEmpty) {
+      return buscarPorNome(_termoBusca);
+    } else if (_idadeBusca != null && _idadeBusca.toString().isNotEmpty) {
+      return buscarPorIdade(_idadeBusca!);
     } else {
       return findAll();
     }
@@ -61,22 +61,22 @@ class _InicialShowState extends State<InicialShow> {
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
+    _nomeController.addListener(() {
       setState(() {
-        _searchTerm = _searchController.text;
+        _termoBusca = _nomeController.text;
       });
     });
-    _ageController.addListener(() {
+    _idadeController.addListener(() {
       setState(() {
-        _searchAge = int.tryParse(_ageController.text);
+        _idadeBusca = int.tryParse(_idadeController.text);
       });
     });
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
-    _ageController.dispose();
+    _nomeController.dispose();
+    _idadeController.dispose();
     super.dispose();
   }
 
@@ -100,7 +100,7 @@ class _InicialShowState extends State<InicialShow> {
                   children: [
                     Expanded(
                       child: TextField(
-                        controller: _searchController,
+                        controller: _nomeController,
                         decoration: InputDecoration(
                           labelText: 'Buscar por nome',
                           prefixIcon: Icon(Icons.search),
@@ -111,7 +111,7 @@ class _InicialShowState extends State<InicialShow> {
                     SizedBox(width: 8),
                     IconButton(
                       onPressed: () {
-                        _searchController.clear();
+                        _nomeController.clear();
                       },
                       icon: Icon(Icons.clear),
                       tooltip: 'Limpar nome',
@@ -129,17 +129,17 @@ class _InicialShowState extends State<InicialShow> {
                     IconButton(
                       icon: Icon(Icons.remove),
                       onPressed: () {
-                        int idade = int.tryParse(_ageController.text) ?? 0;
+                        int idade = int.tryParse(_idadeController.text) ?? 0;
                         if (idade > 0) {
                           idade--;
-                          _ageController.text = idade.toString();
+                          _idadeController.text = idade.toString();
                         }
                       },
                     ),
                     SizedBox(
                       width: 80,
                       child: TextField(
-                        controller: _ageController,
+                        controller: _idadeController,
                         keyboardType: TextInputType.number,
                         textAlign: TextAlign.center,
                         decoration: InputDecoration(
@@ -151,16 +151,16 @@ class _InicialShowState extends State<InicialShow> {
                     IconButton(
                       icon: Icon(Icons.add),
                       onPressed: () {
-                        int idade = int.tryParse(_ageController.text) ?? 0;
+                        int idade = int.tryParse(_idadeController.text) ?? 0;
                         idade++;
-                        _ageController.text = idade.toString();
+                        _idadeController.text = idade.toString();
                       },
                     ),
                     IconButton(
                       icon: Icon(Icons.clear),
                       tooltip: 'Limpar idade',
                       onPressed: () {
-                        _ageController.clear();
+                        _idadeController.clear();
                       },
                       style: IconButton.styleFrom(
                         backgroundColor: Colors.redAccent.shade100,
@@ -170,8 +170,8 @@ class _InicialShowState extends State<InicialShow> {
                     Spacer(),
                     IconButton(
                       onPressed: () {
-                        _searchController.clear();
-                        _ageController.clear();
+                        _nomeController.clear();
+                        _idadeController.clear();
                       },
                       icon: Icon(Icons.filter_alt_off),
                       tooltip: 'Limpar filtros',
