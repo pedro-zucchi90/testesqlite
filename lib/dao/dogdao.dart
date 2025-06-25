@@ -22,6 +22,25 @@ Future<List<Map>> findAll() async {
   return db.query('dogs');
 }
 
+//Buscar por nome
+Future<List<Map>> findByName(String nome) async {
+  final db = await getDatabase();
+  return db.query(
+    'dogs',
+    where: 'Nome LIKE ?',
+    whereArgs: ['%'+nome+'%'],
+  );
+}
+
+//Buscar por idade
+Future<List<Map>> findByAge(int idade) async {
+  final db = await getDatabase();
+  return db.query(
+    'dogs',
+    where: 'Idade = ?',
+    whereArgs: [idade],
+  );
+}
 
 //remove
 Future<int> removeDog(int id) async {

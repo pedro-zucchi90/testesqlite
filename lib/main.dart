@@ -33,6 +33,53 @@ class InicialShow extends StatefulWidget {
 }
 
 class _InicialShowState extends State<InicialShow> {
+  TextEditingController _searchController = TextEditingController();
+  TextEditingController _ageController = TextEditingController();
+  String _searchTerm = '';
+  int? _searchAge;
+
+  Future<List<Map>> _getDogs() {
+    if (_searchTerm.isEmpty && (_searchAge == null || _searchAge.toString().isEmpty)) {
+      return findAll();
+    } else if (_searchTerm.isNotEmpty && _searchAge != null && _searchAge.toString().isNotEmpty) {
+      // Buscar por nome e idade
+      return findAll().then((list) =>
+        list.where((dog) =>
+          (dog['Nome'] as String).toLowerCase().contains(_searchTerm.toLowerCase()) &&
+          dog['Idade'] == _searchAge
+        ).toList()
+      );
+    } else if (_searchTerm.isNotEmpty) {
+      return findByName(_searchTerm);
+    } else if (_searchAge != null && _searchAge.toString().isNotEmpty) {
+      return findByAge(_searchAge!);
+    } else {
+      return findAll();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchTerm = _searchController.text;
+      });
+    });
+    _ageController.addListener(() {
+      setState(() {
+        _searchAge = int.tryParse(_ageController.text);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _ageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,62 +88,158 @@ class _InicialShowState extends State<InicialShow> {
         leading: Icon(Icons.pets, color: Colors.white, size: 40.0), 
         title: Text('Lista dos Dog', style: TextStyle(color: Colors.white)), 
       ),
-      body: FutureBuilder(
-        initialData: [],
-        future: findAll(), 
-        builder: (context, snapshot) {
-          // Snapshot ==> Variável que vai guardar os retornos da função Future
-          // Snapshot ==> 
-          switch (snapshot.connectionState) {
-            case ConnectionState.waiting:
-            case ConnectionState.active:
-              return Center(child: CircularProgressIndicator());
-
-            case ConnectionState.none:
-              return Text('Nenhuma conexão estabelecida');
-
-            case ConnectionState.done:
-              if (snapshot.hasError) {
-                return Center(child: Text('Erro ao carregar dogs'));
-              }
-              List<Map> dogs = snapshot.data as List<Map>;
-              if (dogs.isEmpty) {
-                return Center(child: Text('Nenhum dog encontrado'));
-              }
-              return ListView.builder(
-                itemCount: dogs.length,
-                itemBuilder: (context, index) {
-                  DogModel dog = DogModel.fromMap(dogs[index]);
-                
-                  return Container(
-                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Center(
-                        child: Card(
-                          color: Colors.indigo.shade50,
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: ListTile(
-                            title: Text(dog.Nome),
-                            subtitle: Text('Idade: ${dog.Idade.toString()}'),
-                            trailing: IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
-                              onPressed: () async {
-                                if (dog.id != null) {
-                                  await removeDog(dog.id!);
-                                  setState(() {}); 
-                                }
-                              },
-                            ),
-                          ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Buscar por nome',
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(),
                         ),
                       ),
-                  );
-                },
-              );
-          }
-        },
+                    ),
+                    SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () {
+                        _searchController.clear();
+                      },
+                      icon: Icon(Icons.clear),
+                      tooltip: 'Limpar nome',
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.redAccent.shade100,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.remove),
+                      onPressed: () {
+                        int idade = int.tryParse(_ageController.text) ?? 0;
+                        if (idade > 0) {
+                          idade--;
+                          _ageController.text = idade.toString();
+                        }
+                      },
+                    ),
+                    SizedBox(
+                      width: 80,
+                      child: TextField(
+                        controller: _ageController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          labelText: 'Idade',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add),
+                      onPressed: () {
+                        int idade = int.tryParse(_ageController.text) ?? 0;
+                        idade++;
+                        _ageController.text = idade.toString();
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.clear),
+                      tooltip: 'Limpar idade',
+                      onPressed: () {
+                        _ageController.clear();
+                      },
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.redAccent.shade100,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    Spacer(),
+                    IconButton(
+                      onPressed: () {
+                        _searchController.clear();
+                        _ageController.clear();
+                      },
+                      icon: Icon(Icons.filter_alt_off),
+                      tooltip: 'Limpar filtros',
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.indigo.shade100,
+                        foregroundColor: Colors.indigo.shade900,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder(
+              initialData: [],
+              future: _getDogs(),
+              builder: (context, snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.waiting:
+                  case ConnectionState.active:
+                    return Center(child: CircularProgressIndicator());
+                  case ConnectionState.none:
+                    return Text('Nenhuma conexão estabelecida');
+                  case ConnectionState.done:
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Erro ao carregar dogs'));
+                    }
+                    List<Map> dogs = snapshot.data as List<Map>;
+                    if (dogs.isEmpty) {
+                      return Center(child: Text('Nenhum dog encontrado'));
+                    }
+                    return ListView.builder(
+                      itemCount: dogs.length,
+                      itemBuilder: (context, index) {
+                        DogModel dog = DogModel.fromMap(dogs[index]);
+                        return Container(
+                          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: Center(
+                            child: Card(
+                              color: Colors.indigo.shade50,
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: ListTile(
+                                title: Text(dog.Nome),
+                                subtitle: Text('Idade: ${dog.Idade.toString()}'),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () async {
+                                    if (dog.id != null) {
+                                      await removeDog(dog.id!);
+                                      setState(() {});
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                }
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
